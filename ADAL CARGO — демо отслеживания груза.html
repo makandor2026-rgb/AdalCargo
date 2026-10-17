@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ADAL CARGO — демо отслеживания груза</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f7fd;--card:#fff;--ink:#0f1b33;--mut:#5a6a88;--line:#d9e3f4;--head:#0a2358;--blue:#1b5fd6;--sky:#e6efff;--link:#1449a8;--warn:#9a5b06;--ok:#0f7a5c;--teal:#0b7285;--err:#b4232a;--shadow:0 8px 26px rgba(10,35,88,.09);color-scheme:light;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1426;--card:#141f38;--ink:#e8eefc;--mut:#9aabcc;--line:#26365a;--head:#dbe7ff;--sky:#1b2d52;--link:#8db4ff;--warn:#f5b454;--ok:#5fd3a8;--teal:#62cfe0;--err:#ff8d92;--shadow:0 8px 26px rgba(0,0,0,.35);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0c1426;--card:#141f38;--ink:#e8eefc;--mut:#9aabcc;--line:#26365a;--head:#dbe7ff;--sky:#1b2d52;--link:#8db4ff;--warn:#f5b454;--ok:#5fd3a8;--teal:#62cfe0;--err:#ff8d92;--shadow:0 8px 26px rgba(0,0,0,.35);color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font:16px/1.55 "Onest",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--card)}
+h1,h2,h3{color:var(--head);line-height:1.2;margin:0 0 .5em;letter-spacing:-.01em}
+h1{font-size:clamp(1.9rem,6vw,2.9rem);font-weight:800}h2{font-size:1.5rem;font-weight:700}h3{font-size:1.05rem;font-weight:700}
+p{margin:0 0 1em}.mut{color:var(--mut)}.hidden{display:none!important}
+.wrap{max-width:1040px;margin:0 auto;padding:0 18px}
+.banner{background:#0a2358;color:#cfe0ff;font-size:.85rem;text-align:center;padding:7px 14px}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--card);border-bottom:1px solid var(--line)}
+.hrow{display:flex;align-items:center;justify-content:space-between;min-height:62px;gap:10px;position:relative}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--head);cursor:pointer;background:none;border:0;font-family:inherit;font-size:1.1rem;padding:0}
+.brand small{display:block;font-size:.7rem;color:var(--mut);font-weight:500}
+nav{display:none;gap:4px}nav.open{display:block;position:absolute;left:0;right:0;top:100%;background:var(--card);border-bottom:1px solid var(--line);padding:8px 18px 12px;box-shadow:var(--shadow)}
+nav button{display:block;width:100%;text-align:left;font:600 1rem inherit;font-family:inherit;color:var(--ink);background:none;border:0;padding:12px 14px;border-radius:10px;cursor:pointer}
+nav button:hover,nav button.on{background:var(--sky);color:var(--link)}
+.burger{width:46px;height:46px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--head);cursor:pointer;font-size:1.3rem}
+@media(min-width:760px){nav{display:flex!important;position:static;border:0;box-shadow:none;padding:0}nav button{width:auto}.burger{display:none}}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 20px;font:700 1rem inherit;font-family:inherit;border-radius:14px;border:2px solid transparent;cursor:pointer;transition:transform .12s,background .15s}
+.btn:active{transform:scale(.97)}.btn[disabled]{opacity:.65;cursor:not-allowed}
+.b1{background:var(--blue);color:#fff;box-shadow:0 6px 16px rgba(27,95,214,.28)}.b1:hover:not([disabled]){background:#1449a8}
+.b2{background:var(--card);color:var(--head);border-color:var(--line)}.b2:hover:not([disabled]){border-color:var(--blue)}
+.b3{background:#1f9d57;color:#fff}.b4{background:var(--err);color:#fff}.bs{min-height:38px;padding:0 12px;font-size:.9rem;border-radius:10px}
+.sp{width:18px;height:18px;border-radius:50%;border:3px solid rgba(255,255,255,.4);border-top-color:#fff;animation:spin .7s linear infinite}
+.b2 .sp{border-color:rgba(128,150,200,.35);border-top-color:var(--blue)}.sp.big{width:38px;height:38px;border-color:var(--sky);border-top-color:var(--blue);border-width:4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hero{background:linear-gradient(160deg,#0a2358,#123a85 60%,#1b4fa8);color:#fff;padding:42px 0 64px}
+.hero h1{color:#fff;max-width:14ch}.hero .lead{color:#cfe0ff;max-width:44ch;font-size:1.1rem}
+.hgrid{display:grid;gap:28px;align-items:center}@media(min-width:860px){.hgrid{grid-template-columns:1.05fr .95fr}}
+.tcard{background:var(--card);color:var(--ink);border-radius:20px;padding:20px;max-width:520px;box-shadow:0 16px 40px rgba(0,0,0,.25)}
+.tcard label,.f label{display:block;font-weight:650;margin-bottom:6px;color:var(--head);font-size:.95rem}
+input,select,textarea{width:100%;min-height:50px;padding:11px 14px;font:inherit;color:var(--ink);background:var(--card);border:2px solid var(--line);border-radius:14px}
+textarea{min-height:84px;resize:vertical}input:focus,select:focus,textarea:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 4px rgba(27,95,214,.18)}
+input.bad,select.bad,textarea.bad{border-color:var(--err)}input[readonly]{opacity:.7}
+.err{color:var(--err);font-size:.88rem;min-height:1.2em;margin-top:3px}.f{margin-bottom:12px}
+.acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}.acts .b1{flex:1 1 190px}
+.route path.pg{stroke-dasharray:520;stroke-dashoffset:520;animation:dr 2.4s .3s ease-out forwards}@keyframes dr{to{stroke-dashoffset:0}}
+section.blk{padding:46px 0}.grid3{display:grid;gap:14px}@media(min-width:760px){.grid3{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:0 2px 10px rgba(10,35,88,.06)}
+.step{display:flex;gap:12px}.num{flex:none;width:38px;height:38px;border-radius:50%;background:var(--sky);color:var(--link);font-weight:800;display:flex;align-items:center;justify-content:center}
+.stages{list-style:none;margin:0;padding:0;display:grid;gap:8px}@media(min-width:760px){.stages{grid-template-columns:1fr 1fr}}
+.stages li{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:11px 14px;font-weight:600}
+.stages b{flex:none;width:28px;height:28px;border-radius:50%;background:#0a2358;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center}
+.contact{background:linear-gradient(160deg,#0a2358,#123a85);color:#fff;border-radius:20px;padding:26px;display:grid;gap:16px;align-items:center}
+.contact h2{color:#fff}.contact p{color:#cfe0ff;margin:0}@media(min-width:760px){.contact{grid-template-columns:1fr auto}}
+footer{border-top:1px solid var(--line);background:var(--card);padding:22px 0;color:var(--mut);font-size:.9rem}
+.res{margin-top:-34px;position:relative}.rcard{animation:rise .3s ease-out}@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.badge{display:inline-block;padding:5px 12px;border-radius:999px;font-size:.84rem;font-weight:700;white-space:nowrap}
+.sp0{background:rgba(217,119,6,.16);color:var(--warn)}.sp1{background:var(--sky);color:var(--link)}.sp2{background:rgba(11,114,133,.16);color:var(--teal)}.sp3{background:rgba(15,122,92,.16);color:var(--ok)}.sp4{background:rgba(128,140,170,.2);color:var(--mut)}
+.meta{display:grid;gap:10px;margin:14px 0}@media(min-width:640px){.meta{grid-template-columns:1fr 1fr}}
+.mi{background:var(--bg);border-radius:14px;padding:11px 14px}.mi span{display:block;font-size:.82rem;color:var(--mut)}.mi b{color:var(--head)}
+.note{background:var(--sky);border-radius:14px;padding:13px 16px;margin:14px 0}.note span{display:block;font-size:.82rem;color:var(--mut)}
+.tl{list-style:none;margin:6px 0 0;padding:0}.tl li{position:relative;padding:0 0 18px 30px}
+.tl li::before{content:"";position:absolute;left:7px;top:22px;bottom:-2px;width:2px;background:var(--line)}.tl li:last-child::before{display:none}
+.tl li::after{content:"";position:absolute;left:0;top:4px;width:16px;height:16px;border-radius:50%;background:var(--card);border:3px solid var(--line)}
+.tl li.cur::after{border-color:var(--blue);background:var(--blue);box-shadow:0 0 0 5px rgba(27,95,214,.2)}.tl b{color:var(--head)}.tl small{display:block;color:var(--mut)}
+.empty{text-align:center;padding:30px 12px}.empty svg{width:130px;margin-bottom:6px}.center{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:14px}
+.load{display:flex;flex-direction:column;align-items:center;gap:10px;padding:34px 0;color:var(--mut)}
+.auth{max-width:440px;margin:34px auto}.ibox{background:var(--sky);border-radius:14px;padding:12px 14px;font-size:.92rem;margin-bottom:14px}
+.row2{display:flex;gap:8px}.row2 input{flex:1;min-width:0}
+.atop{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;padding:22px 0 8px}
+.stats{display:grid;gap:10px;grid-template-columns:repeat(2,1fr);margin:12px 0 18px}@media(min-width:760px){.stats{grid-template-columns:repeat(5,1fr)}}
+.st{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px}.st b{display:block;font-size:1.8rem;color:var(--head);line-height:1.1}.st span{font-size:.85rem;color:var(--mut)}
+.tool{display:grid;gap:10px;margin-bottom:12px}@media(min-width:760px){.tool{grid-template-columns:1.4fr 1fr auto auto}}
+.tw{background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+table{width:100%;border-collapse:collapse}th{text-align:left;font-size:.84rem;color:var(--mut);padding:11px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}tr:last-child td{border:0}.code{font-weight:800;color:var(--head);word-break:break-all}.ra{display:flex;flex-wrap:wrap;gap:6px}
+@media(max-width:760px){thead{display:none}table,tbody,tr,td{display:block;width:100%}tr{padding:12px 14px;border-bottom:1px solid var(--line)}td{border:0;padding:4px 0;display:flex;justify-content:space-between;gap:12px;align-items:center}td::before{content:attr(data-l);color:var(--mut);font-size:.84rem}td.ac{display:block;padding-top:8px}td.ac::before{display:none}}
+.pag{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0}.zero{padding:30px;text-align:center;color:var(--mut)}
+.mb{position:fixed;inset:0;z-index:100;background:rgba(8,18,42,.6);display:flex;align-items:flex-end;justify-content:center;animation:fade .15s}
+@media(min-width:640px){.mb{align-items:center;padding:20px}}@keyframes fade{from{opacity:0}to{opacity:1}}
+.md{background:var(--card);width:100%;max-width:640px;max-height:94vh;overflow:auto;border-radius:20px 20px 0 0;padding:22px;animation:pop .2s}
+@media(min-width:640px){.md{border-radius:20px}}@keyframes pop{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+.g2{display:grid;gap:0 14px}@media(min-width:640px){.g2{grid-template-columns:1fr 1fr}.g2 .full{grid-column:1/-1}}
+.ma{display:flex;flex-wrap:wrap;gap:10px;margin-top:6px}.ma .btn{flex:1 1 130px}
+.tw2{position:fixed;z-index:200;left:12px;right:12px;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.ts{pointer-events:auto;max-width:460px;width:100%;padding:13px 16px;border-radius:14px;font-weight:600;color:#fff;background:#0a2358;box-shadow:var(--shadow);animation:rise .2s}.ts.ok{background:#0f7a5c}.ts.er{background:#b4232a}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}.route path.pg{stroke-dashoffset:0}}
+</style>
+</head>
+<body>
+<div class="banner">Демонстрационный прототип. Это не официальный сайт компании. Данные тестовые и хранятся только в вашем браузере.</div>
+<header><div class="wrap hrow">
+<button class="brand" data-go="home" aria-label="ADAL CARGO, на главную">
+<svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#0a2358"/><path d="M20 8 31 14v12l-11 6-11-6V14z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M9.5 14.2 20 20l10.5-5.8M20 20v11.5" fill="none" stroke="#7fb0ff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<span style="text-align:left">ADAL CARGO<small>Актобе, демо-прототип</small></span></button>
+<nav id="nav" aria-label="Меню"><button data-go="home">Главная</button><button data-go="track">Отследить груз</button><button data-go="how">Как это работает</button><button data-go="contacts">Контакты</button><button data-go="login" id="navStaff">Для сотрудников</button></nav>
+<button class="burger" id="burger" aria-label="Открыть меню" aria-expanded="false">☰</button>
+</div></header>
+
+<main>
+<div id="v-home">
+<section class="hero"><div class="wrap hgrid"><div>
+<h1>Отслеживайте свой груз</h1>
+<p class="lead">Введите трек-код, который вам сообщил сотрудник, и увидите, где сейчас ваш груз и что с ним происходило.</p>
+<form class="tcard" id="tform" novalidate>
+<label for="code">Трек-код</label>
+<input id="code" placeholder="Например, AC-DEMO-0001" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="60">
+<div class="err" id="cerr" role="alert"></div>
+<div class="acts"><button class="btn b1" type="submit" id="tbtn">Отследить груз</button><button class="btn b2" type="button" id="tclear">Очистить поле</button></div>
+<p class="mut" style="margin:12px 0 0;font-size:.88rem">Тестовые коды для проверки: AC-DEMO-0001, AC-DEMO-0002, AC-DEMO-0003, AC-DEMO-0004.</p>
+</form></div>
+<div aria-hidden="true"><svg class="route" viewBox="0 0 420 290" width="100%"><path d="M50 225C120 85 250 245 370 65" fill="none" stroke="#5f8fe0" stroke-width="3" stroke-dasharray="6 8" stroke-linecap="round"/><path class="pg" d="M50 225C120 85 250 245 370 65" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="225" r="11" fill="#fff"/><circle cx="50" cy="225" r="5" fill="#0a2358"/><circle cx="370" cy="65" r="11" fill="#7fb0ff"/><circle cx="370" cy="65" r="5" fill="#0a2358"/><text x="50" y="258" fill="#cfe0ff" font-size="16" font-weight="600" font-family="Onest,system-ui,sans-serif">Склад в Китае</text><text x="370" y="38" fill="#fff" font-size="16" font-weight="700" text-anchor="end" font-family="Onest,system-ui,sans-serif">Актобе</text></svg></div>
+</div></section>
+<div class="wrap res" id="result" aria-live="polite"></div>
+<section class="blk" id="how"><div class="wrap"><h2>Как это работает</h2><p class="mut">Статусы обновляют сотрудники компании вручную. Сайт показывает то, что они внесли.</p>
+<div class="grid3"><div class="card step"><div class="num">1</div><div><h3>Получите трек-код</h3><p class="mut" style="margin:0">Сотрудник сообщит вам код груза.</p></div></div>
+<div class="card step"><div class="num">2</div><div><h3>Введите код</h3><p class="mut" style="margin:0">Вставьте его в поле и нажмите «Отследить груз».</p></div></div>
+<div class="card step"><div class="num">3</div><div><h3>Смотрите статус</h3><p class="mut" style="margin:0">Статус, комментарий и история изменений.</p></div></div></div></div></section>
+<section class="blk" style="padding-top:0"><div class="wrap"><h2>Этапы доставки</h2><ol class="stages" id="stages"></ol></div></section>
+<section class="blk" id="contacts" style="padding-top:0"><div class="wrap"><div class="contact"><div><h2>Остались вопросы?</h2><p>Напишите сотруднику в WhatsApp. Адрес и телефон будут добавлены после согласования с компанией.</p></div><button class="btn b3" data-wa="">Связаться с нами</button></div></div></section>
+</div>
+
+<div id="v-login" class="hidden"><div class="wrap"><div class="card auth">
+<h1 style="font-size:1.7rem">Вход для сотрудников</h1>
+<div class="ibox">В демо вход ненастоящий. Почта: <b>staff@demo.test</b>, пароль: <b>demo12345</b>. В боевой версии вход работает через Supabase Auth.</div>
+<form id="lform" novalidate>
+<div class="f"><label for="em">Электронная почта</label><input id="em" type="email" autocomplete="username" inputmode="email"><div class="err" id="eme"></div></div>
+<div class="f"><label for="pw">Пароль</label><div class="row2"><input id="pw" type="password" autocomplete="current-password"><button class="btn b2" type="button" id="pwt" aria-label="Показать пароль">Показать</button></div><div class="err" id="pwe"></div></div>
+<div class="err" id="lerr" role="alert"></div>
+<button class="btn b1" style="width:100%" type="submit" id="lbtn">Войти</button>
+<div class="center"><button class="btn b2 bs" type="button" data-go="home">Вернуться на главную</button></div>
+</form></div></div></div>
+
+<div id="v-admin" class="hidden"><div class="wrap">
+<div class="atop"><div><h1 style="font-size:1.8rem;margin:0">Панель управления</h1><span class="mut">Сотрудник: <b id="who">Демо-сотрудник</b></span></div>
+<div class="acts" style="margin:0"><button class="btn b2 bs" id="refresh">Обновить данные</button><button class="btn b2 bs" id="reset">Сбросить демо-данные</button><button class="btn b4 bs" id="logout">Выйти</button></div></div>
+<div class="stats" id="stats"></div>
+<div class="tool"><input type="search" id="q" placeholder="Поиск по трек-коду" aria-label="Поиск по трек-коду"><select id="sf" aria-label="Фильтр по статусу"></select><button class="btn b2" id="fclear">Сбросить фильтры</button><button class="btn b1" id="add">Добавить груз</button></div>
+<div class="tw" id="list"></div>
+<div class="pag"><button class="btn b2 bs" id="prev">Предыдущая</button><span class="mut" id="pinfo"></span><button class="btn b2 bs" id="next">Следующая</button></div>
+</div></div>
+</main>
+
+<footer><div class="wrap">© ADAL CARGO, Актобе. Демонстрационный прототип, не официальный сайт компании.</div></footer>
+<div class="tw2" id="toasts" aria-live="polite"></div>
+<div id="modal"></div>
+
+<script>
+(function(){
+"use strict";
+var ST=["Заказ зарегистрирован","Ожидает поступления на склад в Китае","Прибыл на склад в Китае","Подготовлен к отправке","Отправлен из Китая","Находится в пути","Прибыл в Казахстан","Прибыл на склад в Актобе","Готов к выдаче","Выдан клиенту"];
+var KEY="adal_demo_v1",WA="YOUR_WHATSAPP_NUMBER",STAFF="Демо-сотрудник",PS=5;
+var $=function(s,r){return(r||document).querySelector(s)};
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function grp(s){var i=ST.indexOf(s);return i<4?0:i<7?1:i===7?2:i===8?3:4}
+function fdt(i){var d=new Date(i);return isNaN(d)?"—":d.toLocaleString("ru-RU",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}
+function fd(d){return d?String(d).split("-").reverse().join("."):"—"}
+function norm(v){return String(v||"").replace(/\s+/g,"").toUpperCase()}
+function okc(c){return/^[A-Z0-9-]{4,40}$/.test(c)}
+function wait(ms){return new Promise(function(r){setTimeout(r,ms)})}
+function badge(s){return'<span class="badge sp'+grp(s)+'">'+esc(s)+"</span>"}
+function toast(m,t){var e=document.createElement("div");e.className="ts "+(t||"");e.textContent=m;$("#toasts").appendChild(e);setTimeout(function(){e.remove()},4200)}
+function busy(b,on,t){if(!b)return;if(on){b.dataset.h=b.innerHTML;b.disabled=true;b.innerHTML='<span class="sp"></span><span>'+(t||"Подождите…")+"</span>"}else{b.disabled=false;if(b.dataset.h)b.innerHTML=b.dataset.h}}
+
+function seed(){var n=function(d){return"2026-10-"+d+"Z"};return[
+{id:1,code:"AC-DEMO-0001",order:"ТЕСТ-001",carrier:"TEST-CN-111",status:"Находится в пути",pub:"Груз в пути, всё идёт по плану.",priv:"ТЕСТ: внутренняя заметка, клиент её не видит.",eta:"2026-10-28",created:n("01T09:00:00"),updated:n("12T10:30:00"),by:STAFF,ev:[{prev:"",st:"Заказ зарегистрирован",pub:"Заказ принят в работу.",priv:"",at:n("01T09:00:00"),by:STAFF},{prev:"Заказ зарегистрирован",st:"Прибыл на склад в Китае",pub:"",priv:"",at:n("05T08:00:00"),by:STAFF},{prev:"Прибыл на склад в Китае",st:"Находится в пути",pub:"Груз в пути, всё идёт по плану.",priv:"ТЕСТ: внутренняя заметка, клиент её не видит.",at:n("12T10:30:00"),by:STAFF}]},
+{id:2,code:"AC-DEMO-0002",order:"ТЕСТ-002",carrier:"",status:"Прибыл на склад в Актобе",pub:"Груз на складе, готовим к выдаче.",priv:"ТЕСТ: проверить комплектность.",eta:"",created:n("02T09:00:00"),updated:n("14T15:00:00"),by:STAFF,ev:[{prev:"",st:"Заказ зарегистрирован",pub:"",priv:"",at:n("02T09:00:00"),by:STAFF},{prev:"Заказ зарегистрирован",st:"Прибыл на склад в Актобе",pub:"Груз на складе, готовим к выдаче.",priv:"ТЕСТ: проверить комплектность.",at:n("14T15:00:00"),by:STAFF}]},
+{id:3,code:"AC-DEMO-0003",order:"ТЕСТ-003",carrier:"TEST-CN-333",status:"Готов к выдаче",pub:"Можно забирать, напишите нам в WhatsApp.",priv:"",eta:"",created:n("03T09:00:00"),updated:n("15T11:00:00"),by:STAFF,ev:[{prev:"",st:"Заказ зарегистрирован",pub:"",priv:"",at:n("03T09:00:00"),by:STAFF},{prev:"Заказ зарегистрирован",st:"Готов к выдаче",pub:"Можно забирать, напишите нам в WhatsApp.",priv:"",at:n("15T11:00:00"),by:STAFF}]},
+{id:4,code:"AC-DEMO-0004",order:"ТЕСТ-004",carrier:"",status:"Заказ зарегистрирован",pub:"",priv:"ТЕСТ: ждём поступления от поставщика.",eta:"2026-11-10",created:n("16T09:00:00"),updated:n("16T09:00:00"),by:STAFF,ev:[{prev:"",st:"Заказ зарегистрирован",pub:"",priv:"ТЕСТ: ждём поступления от поставщика.",at:n("16T09:00:00"),by:STAFF}]}]}
+var db=load();
+function load(){try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(Array.isArray(p))return p}}catch(e){}return seed()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}}
+
+/* навигация */
+var staff=false,page=1,lastCode="";
+function show(v){["home","login","admin"].forEach(function(x){$("#v-"+x).classList.toggle("hidden",x!==v)});window.scrollTo(0,0)}
+function go(t){
+ $("#nav").classList.remove("open");$("#burger").setAttribute("aria-expanded","false");
+ if(t==="login"){if(staff){show("admin");renderAdmin()}else show("login");return}
+ show("home");
+ if(t==="how"||t==="contacts"){setTimeout(function(){$("#"+t).scrollIntoView({behavior:"smooth"})},30)}
+ if(t==="track"){$("#code").focus()}
+}
+document.addEventListener("click",function(e){var b=e.target.closest("[data-go]");if(b){go(b.dataset.go)}var w=e.target.closest("[data-wa]");if(w){wa(w.dataset.wa)}});
+$("#burger").onclick=function(){var o=$("#nav").classList.toggle("open");this.setAttribute("aria-expanded",o)};
+$("#stages").innerHTML=ST.map(function(s,i){return"<li><b>"+(i+1)+"</b>"+esc(s)+"</li>"}).join("");
+function wa(code){var d=WA.replace(/\D/g,"");if(d.length<10){toast("Номер WhatsApp ещё не настроен. Его нужно указать в настройках.","er");return}
+ var t="Здравствуйте! Подскажите, пожалуйста, статус моего груза."+(code?" Трек-код: "+code:"");window.open("https://wa.me/"+d+"?text="+encodeURIComponent(t),"_blank","noopener")}
+
+/* отслеживание */
+$("#tclear").onclick=function(){$("#code").value="";$("#cerr").textContent="";$("#code").classList.remove("bad");$("#result").innerHTML="";$("#code").focus()};
+$("#tform").onsubmit=function(e){e.preventDefault();track($("#code").value)};
+async function track(raw){
+ var c=norm(raw),er=$("#cerr"),inp=$("#code"),b=$("#tbtn");
+ if(!c){er.textContent="Введите трек-код.";inp.classList.add("bad");return}
+ if(!okc(c)){er.textContent="Код может содержать только латинские буквы, цифры и дефис (от 4 до 40 символов).";inp.classList.add("bad");return}
+ er.textContent="";inp.classList.remove("bad");inp.value=c;lastCode=c;
+ busy(b,true,"Ищем…");$("#result").innerHTML='<div class="card load"><span class="sp big"></span>Ищем ваш груз…</div>';
+ await wait(600);db=load();
+ var s=db.filter(function(x){return x.code===c})[0];
+ busy(b,false);
+ $("#result").innerHTML=s?found(s):missing(c);
+ $("#result").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function found(s){
+ var ev=s.ev.slice().sort(function(a,b){return new Date(a.at)-new Date(b.at)});
+ var tl=ev.map(function(x,i){return'<li'+(i===ev.length-1?' class="cur"':"")+"><b>"+esc(x.st)+"</b><small>"+fdt(x.at)+"</small>"+(x.pub?"<div>"+esc(x.pub)+"</div>":"")+"</li>"}).join("");
+ return'<div class="card rcard"><div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center"><div><span class="mut" style="font-size:.85rem">Трек-код</span><div class="code" style="font-size:1.2rem">'+esc(s.code)+"</div></div>"+badge(s.status)+"</div>"+
+ '<div class="meta"><div class="mi"><span>Последнее обновление</span><b>'+fdt(s.updated)+"</b></div>"+(s.eta?'<div class="mi"><span>Ориентировочная дата прибытия</span><b>'+fd(s.eta)+"</b></div>":"")+"</div>"+
+ (s.pub?'<div class="note"><span>Комментарий сотрудника</span>'+esc(s.pub)+"</div>":"")+
+ "<h3>История статусов</h3><ul class=\"tl\">"+tl+"</ul>"+
+ '<div class="acts"><button class="btn b1" id="again" style="flex:0 1 auto">Проверить снова</button><button class="btn b3" data-wa="'+esc(s.code)+'">Написать в WhatsApp</button><button class="btn b2" data-go="home">Вернуться на главную</button></div></div>'}
+function missing(c){
+ return'<div class="card rcard empty"><svg viewBox="0 0 150 110" aria-hidden="true"><rect x="25" y="35" width="100" height="62" rx="10" fill="var(--sky)" stroke="#1b5fd6" stroke-width="3"/><path d="M25 52h100" stroke="#1b5fd6" stroke-width="3"/><circle cx="75" cy="30" r="17" fill="var(--card)" stroke="#1b5fd6" stroke-width="3"/><path d="m88 43 14 14" stroke="#1b5fd6" stroke-width="4" stroke-linecap="round"/></svg><h2>Груз не найден</h2><p class="mut">По коду <b>'+esc(c)+"</b> ничего нет. Проверьте, что код введён без ошибок, или спросите сотрудника.</p>"+
+ '<div class="center"><button class="btn b1" id="again">Проверить снова</button><button class="btn b3" data-wa="'+esc(c)+'">Написать в WhatsApp</button><button class="btn b2" data-go="home">Вернуться на главную</button></div></div>'}
+document.addEventListener("click",function(e){if(e.target.closest("#again")){track(lastCode)}});
+
+/* вход */
+$("#pwt").onclick=function(){var p=$("#pw"),h=p.type==="password";p.type=h?"text":"password";this.textContent=h?"Скрыть":"Показать";this.setAttribute("aria-label",h?"Скрыть пароль":"Показать пароль")};
+$("#lform").onsubmit=async function(e){e.preventDefault();
+ var em=$("#em"),pw=$("#pw"),ok=true;$("#lerr").textContent="";
+ var v=em.value.trim();$("#eme").textContent="";$("#pwe").textContent="";
+ if(!v){$("#eme").textContent="Введите почту.";ok=false}else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)){$("#eme").textContent="Почта указана неверно.";ok=false}
+ if(!pw.value){$("#pwe").textContent="Введите пароль.";ok=false}
+ if(!ok)return;
+ var b=$("#lbtn");busy(b,true,"Входим…");await wait(600);busy(b,false);
+ if(v.toLowerCase()==="staff@demo.test"&&pw.value==="demo12345"){staff=true;pw.value="";$("#navStaff").textContent="Панель";toast("Вы вошли в систему","ok");show("admin");renderAdmin()}
+ else $("#lerr").textContent="Неверная почта или пароль."};
+$("#logout").onclick=function(){staff=false;$("#navStaff").textContent="Для сотрудников";show("login");toast("Вы вышли из системы")};
+
+/* админ-панель */
+$("#sf").innerHTML='<option value="">Все статусы</option>'+ST.map(function(s){return"<option>"+esc(s)+"</option>"}).join("");
+function filtered(){var q=norm($("#q").value),f=$("#sf").value;
+ return db.filter(function(s){return(!q||s.code.indexOf(q)!==-1)&&(!f||s.status===f)}).sort(function(a,b){return new Date(b.updated)-new Date(a.updated)})}
+function renderAdmin(){
+ var c=[0,0,0,0,0];db.forEach(function(s){c[grp(s.status)]++});
+ $("#stats").innerHTML=[["Всего грузов",db.length],["Ожидают отправки",c[0]],["В пути",c[1]],["Прибыли в Актобе",c[2]],["Готовы к выдаче",c[3]]].map(function(x){return'<div class="st"><b>'+x[1]+"</b><span>"+x[0]+"</span></div>"}).join("");
+ var l=filtered(),pages=Math.max(1,Math.ceil(l.length/PS));if(page>pages)page=pages;
+ var part=l.slice((page-1)*PS,page*PS);
+ $("#list").innerHTML=part.length?'<table><thead><tr><th>Трек-код</th><th>Номер заказа</th><th>Статус</th><th>Обновлено</th><th>Действия</th></tr></thead><tbody>'+part.map(function(s){
+  return'<tr><td data-l="Трек-код" class="code">'+esc(s.code)+'</td><td data-l="Номер заказа">'+esc(s.order||"—")+'</td><td data-l="Статус">'+badge(s.status)+'</td><td data-l="Обновлено">'+fdt(s.updated)+'</td><td class="ac"><div class="ra">'+
+  ["status:Статус","edit:Изменить","copy:Копировать","wa:WhatsApp","del:Удалить"].map(function(a){a=a.split(":");return'<button class="btn bs '+(a[0]==="del"?"b4":a[0]==="wa"?"b3":"b2")+'" data-a="'+a[0]+'" data-id="'+s.id+'">'+a[1]+"</button>"}).join("")+"</div></td></tr>"}).join("")+"</tbody></table>"
+  :'<div class="zero">'+(db.length?"По вашему запросу ничего не найдено.":"Грузов пока нет. Нажмите «Добавить груз».")+"</div>";
+ $("#pinfo").textContent="Страница "+page+" из "+pages;$("#prev").disabled=page<=1;$("#next").disabled=page>=pages}
+$("#q").oninput=function(){page=1;renderAdmin()};$("#sf").onchange=function(){page=1;renderAdmin()};
+$("#fclear").onclick=function(){$("#q").value="";$("#sf").value="";page=1;renderAdmin()};
+$("#prev").onclick=function(){page--;renderAdmin()};$("#next").onclick=function(){page++;renderAdmin()};
+$("#refresh").onclick=async function(){var b=this;busy(b,true,"Загрузка…");await wait(400);db=load();renderAdmin();busy(b,false);toast("Данные обновлены","ok")};
+$("#reset").onclick=function(){dlg("Сбросить демо-данные?","<p>Все изменения будут удалены, вернутся 4 тестовых груза.</p>","Сбросить",function(){db=seed();save();page=1;renderAdmin();closeM();toast("Демо-данные восстановлены","ok")},true)};
+$("#list").onclick=function(e){var b=e.target.closest("[data-a]");if(!b)return;var s=db.filter(function(x){return x.id===+b.dataset.id})[0];if(!s)return;var a=b.dataset.a;
+ if(a==="copy")navigator.clipboard&&navigator.clipboard.writeText?navigator.clipboard.writeText(s.code).then(function(){toast("Трек-код скопирован","ok")},function(){toast("Не удалось скопировать","er")}):toast("Копирование недоступно в этом браузере","er");
+ else if(a==="wa")wa(s.code);else if(a==="edit")form(s);else if(a==="status")statusForm(s);
+ else dlg("Удалить груз?","<p>Груз <b>"+esc(s.code)+"</b> будет удалён. Это действие нельзя отменить. В боевой версии груз только скрывается, а история сохраняется.</p>","Удалить груз",function(){db=db.filter(function(x){return x.id!==s.id});save();closeM();renderAdmin();toast("Груз удалён","ok")},true)};
+
+/* окна */
+function openM(h){$("#modal").innerHTML='<div class="mb" id="mb"><div class="md" role="dialog" aria-modal="true">'+h+"</div></div>"}
+function closeM(){$("#modal").innerHTML=""}
+$("#modal").addEventListener("click",function(e){if(e.target.id==="mb"||e.target.closest("[data-x]"))closeM()});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")closeM()});
+function dlg(t,body,ok,fn,danger){openM("<h2>"+t+"</h2>"+body+'<div class="ma"><button class="btn b2" data-x="1">Отменить</button><button class="btn '+(danger?"b4":"b1")+'" id="okb">'+ok+"</button></div>");$("#okb").onclick=function(){this.disabled=true;fn()}}
+function opts(sel){return ST.map(function(s){return"<option"+(s===sel?" selected":"")+">"+esc(s)+"</option>"}).join("")}
+function gen(){var a="ABCDEFGHJKLMNPQRSTUVWXYZ23456789",r=new Uint32Array(12);crypto.getRandomValues(r);var s=Array.prototype.map.call(r,function(x){return a[x%a.length]}).join("");return"AC-"+s.slice(0,4)+"-"+s.slice(4,8)+"-"+s.slice(8)}
+function addEv(s,st,pub,priv){s.ev.push({prev:s.status,st:st,pub:pub,priv:priv,at:new Date().toISOString(),by:STAFF});s.status=st}
+function statusForm(s){
+ openM('<h2>Изменить статус</h2><p class="mut">'+esc(s.code)+'</p><form id="sform" novalidate><div class="f"><label for="ns">Новый статус</label><select id="ns">'+opts(s.status)+'</select></div><div class="f"><label for="np">Публичный комментарий (увидит клиент)</label><textarea id="np" maxlength="500"></textarea></div><div class="f"><label for="nv">Внутренний комментарий (клиент не увидит)</label><textarea id="nv" maxlength="500"></textarea></div><div class="ma"><button class="btn b2" type="button" data-x="1">Отменить</button><button class="btn b1" type="submit" id="sb">Изменить статус</button></div></form>');
+ $("#sform").onsubmit=function(e){e.preventDefault();var st=$("#ns").value;if(st===s.status&&!$("#np").value.trim()){toast("Выберите другой статус или добавьте комментарий","er");return}
+  $("#sb").disabled=true;addEv(s,st,$("#np").value.trim(),$("#nv").value.trim());s.pub=$("#np").value.trim()||s.pub;s.updated=new Date().toISOString();save();closeM();renderAdmin();toast("Статус сохранён, запись добавлена в историю","ok")}}
+function form(s){
+ var n=!s;
+ openM("<h2>"+(n?"Новый груз":"Редактировать груз")+'</h2><form id="gform" novalidate><div class="g2">'+
+ '<div class="f full"><label for="gc">Трек-код</label><div class="row2"><input id="gc" value="'+esc(n?"":s.code)+'" maxlength="40" autocapitalize="characters"><button class="btn b2" type="button" id="gg">Создать код</button></div><div class="err" id="e-gc"></div></div>'+
+ '<div class="f"><label for="go">Внутренний номер заказа</label><input id="go" value="'+esc(n?"":s.order)+'" maxlength="60"></div>'+
+ '<div class="f"><label for="gk">Номер отслеживания перевозчика</label><input id="gk" value="'+esc(n?"":s.carrier)+'" maxlength="60"></div>'+
+ '<div class="f"><label for="gs">Статус</label><select id="gs">'+opts(n?ST[0]:s.status)+"</select></div>"+
+ '<div class="f"><label for="ge">Ориентировочная дата прибытия</label><input id="ge" type="date" value="'+esc(n?"":s.eta)+'"><div class="err" id="e-ge"></div></div>'+
+ '<div class="f full"><label for="gp">Публичный комментарий</label><textarea id="gp" maxlength="500">'+esc(n?"":s.pub)+"</textarea></div>"+
+ '<div class="f full"><label for="gv">Внутренний комментарий</label><textarea id="gv" maxlength="500">'+esc(n?"":s.priv)+"</textarea></div>"+
+ '<div class="f"><label>Дата создания</label><input readonly value="'+fdt(n?new Date().toISOString():s.created)+'"></div><div class="f"><label>Создал</label><input readonly value="'+esc(n?STAFF:s.by)+'"></div></div>'+
+ '<div class="ma"><button class="btn b2" type="button" data-x="1">Отменить</button><button class="btn b1" type="submit" id="gb">'+(n?"Сохранить груз":"Сохранить изменения")+"</button></div></form>");
+ $("#gg").onclick=function(){$("#gc").value=gen()};
+ $("#gform").onsubmit=function(e){e.preventDefault();
+  var c=norm($("#gc").value),ok=true,ec=$("#e-gc"),ee=$("#e-ge");ec.textContent="";ee.textContent="";
+  if(!c){ec.textContent="Введите трек-код или нажмите «Создать код».";ok=false}
+  else if(!okc(c)){ec.textContent="Только латинские буквы, цифры и дефис, от 4 до 40 символов.";ok=false}
+  else if(db.some(function(x){return x.code===c&&(n||x.id!==s.id)})){ec.textContent="Груз с таким трек-кодом уже есть.";ok=false}
+  var eta=$("#ge").value;if(eta&&isNaN(new Date(eta))){ee.textContent="Дата указана неверно.";ok=false}
+  if(!ok)return;
+  $("#gb").disabled=true;var now=new Date().toISOString(),st=$("#gs").value,pub=$("#gp").value.trim(),priv=$("#gv").value.trim();
+  if(n){var id=db.reduce(function(m,x){return Math.max(m,x.id)},0)+1;
+   var o={id:id,code:c,order:$("#go").value.trim(),carrier:$("#gk").value.trim(),status:st,pub:pub,priv:priv,eta:eta,created:now,updated:now,by:STAFF,ev:[{prev:"",st:st,pub:pub,priv:priv,at:now,by:STAFF}]};db.push(o);toast("Груз добавлен","ok")}
+  else{s.code=c;s.order=$("#go").value.trim();s.carrier=$("#gk").value.trim();s.eta=eta;s.priv=priv;s.pub=pub;
+   if(st!==s.status)addEv(s,st,pub,priv);s.updated=now;toast("Изменения сохранены","ok")}
+  save();closeM();page=1;renderAdmin()}}
+$("#add").onclick=function(){form(null)};
+})();
+</script>
+</body>
+</html>
